@@ -1,5 +1,9 @@
 const airmap_server = "localhost:5000";
 
+let is_simconnect_connected = false
+
+let plane_location_data = null
+
 function save_values() {
     const settings = {};
     document.querySelectorAll("input").forEach(checkbox => {
@@ -47,14 +51,72 @@ function update_theme() {
     }
 }
 
-function try_simconnect_connection() {
-    console.log("WIP");
+async function try_simconnect_connection() {
+    if (is_simconnect_connected) {
+        console.log("Disconnecting from SimConnect...");
+        is_simconnect_connected = false;
+        document.getElementById("enable_simconnect").innerText = "Connect to SimConnectMapClient";
+    }
+    else {
+        console.log("Trying to connect to SimConnect...");
+        document.getElementById("enable_simconnect").disabled = true;
+        document.getElementById("enable_simconnect").innerText = "Connecting...";
+        setTimeout(() => {document.getElementById("enable_simconnect").innerText = "Disconnect";}, 2000);
+
+        let client_running = await check_for_client()
+        if (client_running) {
+            console.log("SimConnect is running.");
+            is_simconnect_connected = true;
+            document.getElementById("enable_simconnect").disabled = false;
+            document.getElementById("enable_simconnect").innerText = "Connected";
+        }
+        else {
+            console.log("SimConnect is not running.");
+            is_simconnect_connected = false;
+            document.getElementById("enable_simconnect").disabled = false;
+            document.getElementById("enable_simconnect").innerText = "Error while connecting";
+            setTimeout(() => {document.getElementById("enable_simconnect").innerText = "Connect to SimConnectMapClient";}, 2000);
+        }
+    }
 }
 
-const markerGroup = L.layerGroup().addTo(window.map);
+async function check_simconnect_status() {
+    if (is_simconnect_connected) {
+        if (!await check_for_client()) {
+            console.log("Connection to SimConnect lost.");
+            is_simconnect_connected = false;
+            document.getElementById("enable_simconnect").innerText = "Connect to SimConnectMapClient";
+        }
+    }
+}
+
+setInterval(check_simconnect_status, 500)
+
+async function get_plane_data() {
+    if (is_simconnect_connected) {
+        plane_location_data = await get_location();
+    }
+}
+setInterval(get_plane_data, 1000)
+
+let plane_marker = null
+function initialize_plane_marker(){
+    let generated_icon = L.icon({
+        iconUrl: "static/img/plane.png",
+        iconSize: [32, 32], // size of the icon
+        iconAnchor: [16, 16], // point of the icon which will correspond to marker's location
+        popupAnchor: [0, -32] // point from which the popup should open relative to the iconAnchor
+    });
+    plane_marker = L.marker([0, 0], { icon: generated_icon });
+    plane_marker.bindPopup("Your plane");
+    plane_marker.addTo(window.map); // Add marker to the map
+}
+
+let markers = []
 
 // Function to add a marker to the map
 function add_marker(lat, lon, icon_path, description) {
+    const markerGroup = L.layerGroup().addTo(window.map);
     let generated_icon = L.icon({
         iconUrl: icon_path,
         iconSize: [32, 32], // size of the icon
@@ -63,6 +125,8 @@ function add_marker(lat, lon, icon_path, description) {
     });
     let marker = L.marker([lat, lon], { icon: generated_icon });
     marker.bindPopup(description);
+    marker.setOpacity((((map.getZoom()/19-0.2)*10)**2)/10);
+    markers.push(marker); // Store the marker in the markers array
     markerGroup.addLayer(marker); // Add marker to the LayerGroup
 }
 
@@ -85,6 +149,7 @@ function namelize(str){
 }
 
 let existingObjects = []
+let polygons = []
 
 function load_elements() {
     const data = get_airmap_data(map.getCenter().lat, map.getCenter().lng);
@@ -104,17 +169,86 @@ function load_elements() {
                 color: '#33aaff', // Border color
                 opacity: 0.5, // Border opacity
                 fillColor: '#0066ff', // Fill color
-                fillOpacity: 0.1 // Fill opacity
+                fillOpacity: ((((map.getZoom()/19-0.2)*10)**2)/10) // Fill opacity
             });
             polygon.addTo(map);
+            polygons.push(polygon);
             existingObjects.push("as-" + airspace.name);
+        }
+    });
+
+    data.components.Navaids.elements.forEach(navaid => {
+        const navaidKey = `${navaid.location.latitude},${navaid.location.longitude}`;
+        if (!existingObjects.includes("nv-"+navaidKey)) {
+            let description = `<strong>${namelize(navaid.name)} (${navaid.identifier})</strong><br>${navaid.frequency} MHz (${navaid.type})`
+            add_marker(navaid.location.latitude, navaid.location.longitude, `static/img/navaid-${navaid.type}.svg`, description);
+            existingObjects.push("nv-"+navaidKey);
         }
     });
 }
 
+function update_plane_marker() {
+    if (is_simconnect_connected && plane_location_data) {
+        if (!plane_marker) {
+            initialize_plane_marker();
+        }
+        const lat = plane_location_data.PLANE_LATITUDE;
+        const lon = plane_location_data.PLANE_LONGITUDE;
+        let heading = plane_location_data.GPS_GROUND_TRUE_HEADING;
+
+        // Update marker position
+        plane_marker.setLatLng([lat, lon]);
+
+        // Transform heading from radians to degrees
+        heading *= (180 / Math.PI);
+        if (heading < 0) {
+            heading += 360;
+        }
+        if (heading > 360) {
+            heading -= 360;
+        }
+        heading = heading.toFixed();
+        console.log(heading);
+
+        // Rotate the marker based on the heading
+        plane_marker.setRotationAngle(heading);
+
+        // Update popup content
+        const description = `<strong>Your plane</strong><br>${heading}° FL${(plane_location_data.PLANE_ALTITUDE / 100).toFixed(0)} ${plane_location_data.AIRSPEED_INDICATED.toFixed()}kt`;
+        plane_marker.setPopupContent(description);
+    }
+}
+
+function render_moving() {
+    update_plane_marker();
+}
+setInterval(render_moving, 100)
+
+function update_marker_opacity() {
+    let opacity = 0
+    if (map.getZoom() > 4) {
+        opacity = (((map.getZoom()/19-0.2)*10)**2)/10
+    }
+    opacity *= 0.7
+    markers.forEach(marker => {
+        marker.setOpacity(opacity);
+    });
+    opacity = 0
+    if (map.getZoom() > 4) {
+        opacity = (((map.getZoom()/19-0.2)*10)**2)/10
+    }
+    if (opacity > 1) {
+        opacity = 1
+    }
+    opacity *= 0.2
+    polygons.forEach(polygon => {
+        polygon.setStyle({ fillOpacity: opacity, opacity: opacity*1.5 });
+    });
+}
 
 function render_map() {
     load_elements();
+    update_marker_opacity();
 }
 
 

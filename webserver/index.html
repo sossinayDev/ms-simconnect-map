@@ -9,6 +9,8 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="static/script.js" defer></script>
     <script src="static/airmap.js" defer></script>
+    <script src="static/simconnect.js" defer></script>
+    <script src="static/leaflet_marker_rotate.js" defer></script>
 </head>
 <body>
     <div class="section section1">
@@ -46,7 +48,7 @@
 
     <script>
         // Initialize the Leaflet map
-        window.map = L.map('map').setView([51.5074, -0.1276], 13); // Centered on London
+        window.map = L.map('map').setView([46.9258, 7.4177], 12); // Centered on Bern, Switzerland
 
         // Add OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

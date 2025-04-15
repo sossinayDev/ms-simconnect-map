@@ -12,6 +12,10 @@ const DATA_COMPONENTS = [
     {
         "name": "Airfields",
         "path": "airports"
+    },
+    {
+        "name": "Navaids",
+        "path": "navaids"
     }
 ]
 
@@ -204,6 +208,21 @@ function download_airmap_data(latitude, longitude, components){
 
                     elements.push(airfieldData);
                 });
+                }
+                else if (component_name === "Navaids") {
+                    data["items"].forEach(item => {
+                        let navaidData = {
+                            name: item["name"],
+                            type: item["type"],
+                            identifier: item["identifier"],
+                            frequency: item["frequency"]["value"],
+                            location: {
+                                latitude: item["geometry"]["coordinates"][1],
+                                longitude: item["geometry"]["coordinates"][0]
+                            }
+                        };
+                        elements.push(navaidData);
+                    });
                 }
             }
 
