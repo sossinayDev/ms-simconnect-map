@@ -99,12 +99,17 @@ function load_elements() {
     });
 
     data.components.Airspaces.elements.forEach(airspace => {
-        if (!existingObjects.includes("as-"+airspace.name)){
-            let polygon = L.polygon(airspace.points)
-            polygon.addTo(map)
-            existingObjects.push("as-"+airspace.name)
+        if (!existingObjects.includes("as-" + airspace.name)) {
+            let polygon = L.polygon(airspace.points, {
+                color: '#33aaff', // Border color
+                opacity: 0.5, // Border opacity
+                fillColor: '#0066ff', // Fill color
+                fillOpacity: 0.1 // Fill opacity
+            });
+            polygon.addTo(map);
+            existingObjects.push("as-" + airspace.name);
         }
-    })
+    });
 }
 
 

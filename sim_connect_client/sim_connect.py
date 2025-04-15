@@ -7,4 +7,4 @@ app = Flask("sim_connect_client")
 def index():
     return msfs.get_data()
 
-app.run(port=1324)
+app.run(port=1234)
