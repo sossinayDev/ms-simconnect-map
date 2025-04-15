@@ -1,0 +1,87 @@
+/* styles.css */
+body {
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    height: 100vh;
+    background-color: #ffffff;
+    color: #000000;
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+}
+
+button {
+    background-color: #00000055;
+    border: none;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.dark-theme button {
+    color: white;
+}
+
+body.dark-theme {
+    background-color: #242424;
+    color: #ffffff;
+}
+
+#map.dark-theme {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+blockquote {
+    font-style: italic;
+}
+
+.dark-theme blockquote {
+    color: lightgray
+}
+
+.dark-theme a {
+    color: #51aaee;
+    text-decoration: none;
+}
+
+::-webkit-scrollbar {
+    display: none;
+}
+
+* {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+}
+
+.section {
+    padding: 2%;
+    border: 1px solid #ccc; /* Optional: for visual separation */
+    overflow-y: auto;
+}
+
+.section1 {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.section2 {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.section3 {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.section4 {
+    grid-column: 2;
+    grid-row: 2;
+}

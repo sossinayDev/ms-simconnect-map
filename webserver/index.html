@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimConnect Map</title>
+    <link rel="stylesheet" href="static/styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="static/script.js" defer></script>
+    <script src="static/airmap.js" defer></script>
+</head>
+<body>
+    <div class="section section1">
+        <div id="map_container" style="width: 100%; height: 100%;">
+            <div id="map" style="width: 100%; height: 100%;"></div>
+        </div>
+    </div>
+    <div class="section section2">
+        <h1>Settings</h1>
+        <div id="simconnect_settings">
+            <h2>SimConnect Settings</h2>
+            <p>SimConnect is a Microsoft Flight Simulator API that allows external applications to communicate with the simulator.</p>
+            <p>Enabling this will allow SimConnectMap to access your planes location, heading, speed and other information to enhance your experience.</p>
+            <button id="enable_simconnect" onclick="try_simconnect_connection()">Connect to SimConnectMapClient</button><br>
+            <blockquote>Note: To use SimConnect, you need to have Microsoft Flight Simulator installed and running, as well as the local <a href="download.html">SimConnectMapClient.</a></blockquote>
+        </div>
+        <div id="visual_settings">
+            <h2>Visual Settings</h2>
+            <p>These settings will change the way the webpage looks.</p>
+            <input id="dark_mode_map" type="checkbox" checked="true" onclick="save_values()"><label for="dark_mode_map">Dark mode map</label><br>
+            <input id="dark_mode" type="checkbox" onclick="save_values()"><label for="dark_mode">Dark Mode</label><br>
+        </div>
+        <div id="map_settings">
+            <h2>Map Settings</h2>
+            <p>These settings will change the way the map looks.</p>
+            <input id="show_plane" type="checkbox" checked="true" onclick="save_values()"><label for="show_plane">Show Plane</label><br>
+            <input id="show_weather" type="checkbox" checked="true" onclick="save_values()"><label for="show_weather">Show Weather</label><br>
+            <input id="show_airports" type="checkbox" checked="true" onclick="save_values()"><label for="show_airports">Show Airports</label><br>
+            <input id="show_runways" type="checkbox" checked="true" onclick="save_values()"><label for="show_runways">Show Runways</label><br>
+            <input id="show_airspaces" type="checkbox" checked="true" onclick="save_values()"><label for="show_airspaces">Show Airspaces</label><br>
+        </div>
+    </div>
+    <div class="section section3">Section 3</div>
+    <div class="section section4">Section 4</div>
+
+    <script>
+        // Initialize the Leaflet map
+        window.map = L.map('map').setView([51.5074, -0.1276], 13); // Centered on London
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+    </script>
+</body>
+</html>
