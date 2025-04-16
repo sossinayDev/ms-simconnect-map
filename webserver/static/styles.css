@@ -120,3 +120,18 @@ blockquote {
 .dark-theme .flight_plan_element input {
     color: #77ccff
 }
+
+#flightplandatabase_light {
+    display: block;
+}
+#flightplandatabase_dark {
+    display: none;
+}
+
+.dark-theme #flightplandatabase_light {
+    display: none;
+}
+
+.dark-theme #flightplandatabase_dark {
+    display: block;
+}

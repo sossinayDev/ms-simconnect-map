@@ -4,6 +4,10 @@ let is_simconnect_connected = false
 
 let plane_location_data = null
 
+let flightplan = {
+    waypoints: []
+}
+
 function save_values() {
     const settings = {};
     document.querySelectorAll("input").forEach(checkbox => {
@@ -220,6 +224,10 @@ function update_plane_marker() {
             // Update popup content
             const description = `<strong>Your plane</strong><br>${heading}° FL${(plane_location_data.PLANE_ALTITUDE / 100).toFixed(0)} ${plane_location_data.AIRSPEED_INDICATED.toFixed()}kt`;
             plane_marker.setPopupContent(description);
+
+            if (document.getElementById("simconnect_track_plane").checked) {
+                map.setView([lat, lon], map.getZoom(), { animate: false });
+            }
         }
         else {
             if (plane_marker) {
@@ -229,7 +237,103 @@ function update_plane_marker() {
     }
 }
 
-async function load_waypoint_data() {
+function export_flightplan() {
+    let flightplan_data = {nodes:[]}
+    flightplan.waypoints.forEach(waypoint => {
+        type = "FIX"
+        if (waypoint.type == "APT") {
+            type = "APT"
+        }
+        flightplan_data.nodes.push({
+            type: type,
+            ident: waypoint.id,
+            name: null,
+            alt: parseFloat(waypoint.alt),
+            lat: parseFloat(waypoint.lat),
+            lon: parseFloat(waypoint.lon),
+            via: null
+        })
+    });
+    const blob = new Blob([JSON.stringify(flightplan_data, null, 4)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${flightplan.waypoints[0].id}-${flightplan.waypoints[flightplan.waypoints.length-1].id}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function import_flightplan() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json";
+    input.onchange = async (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const content = e.target.result;
+                try {
+                    const flightplan_data = JSON.parse(content);
+                    document.getElementById("flight_plan_waypoints").innerHTML = ""
+                    flightplan.waypoints = []
+                    flightplan_data.nodes.forEach(node => {
+                        if (node.type == "FIX" || node.type == "APT") {
+                            flightplan.waypoints.push({
+                                id: node.ident,
+                                type: node.type,
+                                alt: node.alt,
+                                speed: 0,
+                                lat: node.lat,
+                                lon: node.lon
+                            })
+                            let element = document.createElement("div")
+                            element.classList.add("flight_plan_element")
+                            element.id = `flightplan_${node.ident}`
+                            element.innerHTML = `<strong>${node.ident}</strong><br><span>${node.alt}ft 0kt</span>`
+                            document.getElementById("flight_plan_waypoints").appendChild(element)
+                            show_flightplan();
+                        }
+                    });
+                }
+                catch (error) {
+                    console.error("Error parsing JSON:", error);
+                    alert("Error parsing JSON file. Please make sure it is a valid flight plan file.");
+                }
+            };
+            reader.readAsText(file);
+        }
+    };
+    input.click();
+}
+
+function clear_flightplan() {
+    if (confirm("Are you sure you want to clear the flight plan?")) {
+        flightplan.waypoints = []
+        document.getElementById("flight_plan_waypoints").innerHTML = ""
+        show_flightplan();
+    }
+}
+
+
+let path = null
+
+function show_flightplan() {
+    if (document.getElementById("show_flightplan").checked) {
+        if (!path) {
+            path = L.polyline([], { color: 'green', weight: 5 }).addTo(map);
+        }
+        path.setLatLngs(flightplan.waypoints.map(wp => [wp.lat, wp.lon]));
+    }
+    else {
+        if (path) {
+            path.remove();
+            path = null;
+        }
+    }
+}
+
+function load_waypoint_data() {
     FIX_WAYPOINTS.list.forEach(waypoint => {
         const lat = FIX_WAYPOINTS.waypoints[waypoint].pos[0];
         const lon = FIX_WAYPOINTS.waypoints[waypoint].pos[1];
@@ -244,7 +348,6 @@ async function load_waypoint_data() {
         }
     });
 }
-
 
 function render_moving() {
     update_plane_marker();
@@ -281,32 +384,73 @@ function render_map() {
     load_waypoint_data();
 }
 
-let flightplan = {
-    waypoints: []
-}
 
-function add_waypoint_to_flightplan(wp_name, altitude, speed) {
+
+async function add_waypoint_to_flightplan(wp_name, altitude, speed) {
     if (Object.keys(FIX_WAYPOINTS.waypoints).includes(wp_name)) {
         document.getElementById('new_waypoint_name').value = ""
         document.getElementById('new_waypoint_altitude').value = ""
         document.getElementById('new_waypoint_speed').value = ""
         flightplan.waypoints.push({
             id: wp_name,
+            type: FIX_WAYPOINTS.waypoints[wp_name].type.toUpperCase(),
             alt: altitude,
-            speed: speed
+            speed: speed,
+            lat: FIX_WAYPOINTS.waypoints[wp_name].pos[0],
+            lon: FIX_WAYPOINTS.waypoints[wp_name].pos[1]
         })
+        let element = document.createElement("div")
+        element.classList.add("flight_plan_element")
+        element.id = `flightplan_${wp_name}`
+        element.innerHTML = `<strong>${wp_name}</strong><br><span>${altitude}ft ${speed}kt</span>`
+        document.getElementById("flight_plan_waypoints").appendChild(element)
+        document.getElementById('new_waypoint_name').focus()
         
     }
     else {
-        console.log("Unknown waypoint")
+        if (wp_name.length == 4) {
+            let airport_data = await get_airport_data(wp_name)
+            if (airport_data) {
+                document.getElementById('new_waypoint_name').value = ""
+                document.getElementById('new_waypoint_altitude').value = ""
+                document.getElementById('new_waypoint_speed').value = ""
+                flightplan.waypoints.push({
+                    id: wp_name,
+                    type: "APT",
+                    alt: altitude,
+                    speed: speed,
+                    lat: airport_data.location.latitude,
+                    lon: airport_data.location.longitude
+                })
+                let element = document.createElement("div")
+                element.classList.add("flight_plan_element")
+                element.id = `flightplan_${wp_name}`
+                element.innerHTML = `<strong>${wp_name}</strong><br><span>${altitude}ft ${speed}kt</span>`
+                document.getElementById("flight_plan_waypoints").appendChild(element)
+                document.getElementById('new_waypoint_name').focus()
+            }
+        }
+        else {
+            console.log("Unknown waypoint")
+        }
     }
+    show_flightplan()
 }
 
-function update_waypoint_preview_data() {
+async function update_waypoint_preview_data() {
     wp_name = document.getElementById("new_waypoint_name").value
-    if (wp_name.length>3){
+    if (wp_name.length>4){
         if (Object.keys(FIX_WAYPOINTS.waypoints).includes(wp_name)) {
             document.getElementById("waypoint_preview_data").textContent = `Found: ${FIX_WAYPOINTS.waypoints[wp_name].pos[0]}, ${FIX_WAYPOINTS.waypoints[wp_name].pos[1]} (${FIX_WAYPOINTS.waypoints[wp_name].type})`
+        }
+        else {
+            document.getElementById("waypoint_preview_data").textContent = `Unknown waypoint: ${wp_name}`
+        }
+    }
+    else if (wp_name.length == 4) {
+        data = await get_airport_data(wp_name)
+        if (data) {
+            document.getElementById("waypoint_preview_data").textContent = `Found: ${data.location.latitude}, ${data.location.longitude} (${data.type})`
         }
         else {
             document.getElementById("waypoint_preview_data").textContent = `Unknown waypoint: ${wp_name}`
@@ -327,6 +471,9 @@ setInterval(render_map, 2000)
 window.onload = function () {
     load_values();
     render_map();
+    if (document.getElementById("simconnect_autostart").checked) {
+        try_simconnect_connection();
+    }
 }
 
 document.getElementById('new_waypoint_name').addEventListener('keypress', function (event) {

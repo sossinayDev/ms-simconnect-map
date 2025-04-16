@@ -29,6 +29,8 @@
             <p>Enabling this will allow SimConnectMap to access your planes location, heading, speed and other information to enhance your experience.</p>
             <button id="enable_simconnect" onclick="try_simconnect_connection()">Connect to SimConnectMapClient</button><br>
             <blockquote>Note: To use SimConnect, you need to have Microsoft Flight Simulator installed and running, as well as the local <a href="download.html">SimConnectMapClient.</a></blockquote>
+            <input id="simconnect_autostart" type="checkbox" checked="false" onclick="save_values()"><label for="simconnect_autostart">Start SimConnect on startup</label><br>
+            <input id="simconnect_track_plane" type="checkbox" checked="true" onclick="save_values()"><label for="simconnect_track_plane">Automatically snap map to plane</label><br>
         </div>
         <div id="visual_settings">
             <h2>Visual Settings</h2>
@@ -40,19 +42,19 @@
             <h2>Map Settings</h2>
             <p>These settings will change the way the map looks.</p>
             <input id="show_plane" type="checkbox" checked="true" onclick="save_values()"><label for="show_plane">Show Plane</label><br>
+            <input id="show_flightplan" type="checkbox" checked="true" onclick="save_values();show_flightplan()"><label for="show_plane">Show Flightplan</label><br>
             <input id="show_weather" type="checkbox" checked="true" onclick="save_values()"><label for="show_weather">Show Weather</label><br>
             <input id="show_airports" type="checkbox" checked="true" onclick="save_values()"><label for="show_airports">Show Airports</label><br>
             <input id="show_runways" type="checkbox" checked="true" onclick="save_values()"><label for="show_runways">Show Runways</label><br>
             <input id="show_airspaces" type="checkbox" checked="true" onclick="save_values()"><label for="show_airspaces">Show Airspaces</label><br>
         </div>
+        <!-- <a id="flightplandatabase_light" href="https://flightplandatabase.com"><img src="https://static.flightplandatabase.com/images/data-banner/light.min.png" alt="Data from the Flight Plan Database"></a>
+        <a id="flightplandatabase_dark" href="https://flightplandatabase.com"><img src="https://static.flightplandatabase.com/images/data-banner/dark.min.png" alt="Data from the Flight Plan Database"></a> -->
     </div>
     <div class="section section3">
-        <h1>Flight plan</h1>
+        <h1>Flight plan</h1><button id="import_flightplan" onclick="import_flightplan()">Import Flightplan</button><button id="export_flightplan" onclick="export_flightplan()">Export Flightplan</button><button id="clear_flightplan" onclick="clear_flightplan()">Clear Flightplan</button>
         <h3>Route</h3>
         <div id="flight_plan_waypoints">
-            <div class="flight_plan_element">
-                <strong>LSZB</strong> <span>(Airport)</span>
-            </div>
         </div>
         <div id="add_waypoint_menu">
             <div class="flight_plan_element">
