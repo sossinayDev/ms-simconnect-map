@@ -85,3 +85,38 @@ blockquote {
     grid-column: 2;
     grid-row: 2;
 }
+
+.flight_plan_element {
+    display: flex;
+    flex-direction: row;
+    margin: 0;
+    width: 100%;
+    min-height: 30px;
+    vertical-align: middle;
+    background-color: #00000020;
+}
+
+.flight_plan_element * {
+    margin: 2%;
+    font-size: 16px;
+}
+
+.flight_plan_element strong {
+    color: #00406a;
+}
+
+.dark-theme .flight_plan_element strong{
+    color: #77ccff
+}
+
+.flight_plan_element input {
+    background-color: #00000010;
+    width: 13%;
+    border: 0;
+    font-weight: bold;
+    color: #00406a;
+}
+
+.dark-theme .flight_plan_element input {
+    color: #77ccff
+}

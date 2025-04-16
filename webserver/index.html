@@ -11,6 +11,9 @@
     <script src="static/airmap.js" defer></script>
     <script src="static/simconnect.js" defer></script>
     <script src="static/leaflet_marker_rotate.js" defer></script>
+
+    <script src="static/databases/fix_points.js" defer></script>
+
 </head>
 <body>
     <div class="section section1">
@@ -43,7 +46,23 @@
             <input id="show_airspaces" type="checkbox" checked="true" onclick="save_values()"><label for="show_airspaces">Show Airspaces</label><br>
         </div>
     </div>
-    <div class="section section3">Section 3</div>
+    <div class="section section3">
+        <h1>Flight plan</h1>
+        <h3>Route</h3>
+        <div id="flight_plan_waypoints">
+            <div class="flight_plan_element">
+                <strong>LSZB</strong> <span>(Airport)</span>
+            </div>
+        </div>
+        <div id="add_waypoint_menu">
+            <div class="flight_plan_element">
+                <input placeholder="CDE" id="new_waypoint_name" oninput="document.getElementById('new_waypoint_name').value = document.getElementById('new_waypoint_name').value.toUpperCase(); update_waypoint_preview_data()"/>
+                <input placeholder="ALT" type="number" id="new_waypoint_altitude"/>
+                <input placeholder="SPD" type="number" id="new_waypoint_speed"/>
+            </div>
+            <p id="waypoint_preview_data"></p>
+        </div>
+    </div>
     <div class="section section4">Section 4</div>
 
     <script>
