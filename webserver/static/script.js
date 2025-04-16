@@ -219,6 +219,22 @@ function update_plane_marker() {
     }
 }
 
+function load_waypoint_data() {
+    fetch("")
+        .then(response => response.json())
+        .then(data => {
+            data.waypoints.forEach(waypoint => {
+                const lat = waypoint.latitude;
+                const lon = waypoint.longitude;
+                const type = waypoint.type;
+                const name = waypoint.name;
+                const description = `<strong>${namelize(name)}</strong><br>${type}`;
+                add_marker(lat, lon, `static/img/fix_waypoint.svg`, description);
+            });
+        })
+        .catch(error => console.error("Error loading waypoint data:", error));
+}
+
 function render_moving() {
     update_plane_marker();
 }
@@ -261,4 +277,5 @@ setInterval(render_map, 2000)
 window.onload = function() {
     load_values();
     render_map();
+    load_waypoint_data();
 }
