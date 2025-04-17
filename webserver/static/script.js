@@ -332,7 +332,7 @@ function show_flightplan() {
             }
         });
         if (render){
-            path.setLatLngs(flightplan.waypoints.map(wp => [wp.lat, wp.lon]));
+            path.setLatLngs([plane_location_data.PLANE_LATITUDE, plane_location_data.PLANE_LONGITUDE]+flightplan.waypoints.map(wp => [wp.lat, wp.lon]));
         }
         else {
             if (path) {
@@ -368,6 +368,7 @@ function load_waypoint_data() {
 
 function render_moving() {
     update_plane_marker();
+    show_flightplan();
 }
 setInterval(render_moving, 100)
 
@@ -506,6 +507,7 @@ function remove_flightplan_waypoint(id) {
 
 async function update_waypoint_preview_data() {
     wp_name = document.getElementById("new_waypoint_name").value
+    console.log(wp_name.length)
     if (wp_name.length>4){
         if (Object.keys(FIX_WAYPOINTS.waypoints).includes(wp_name)) {
             document.getElementById("waypoint_preview_data").textContent = `Found: ${FIX_WAYPOINTS.waypoints[wp_name].pos[0]}, ${FIX_WAYPOINTS.waypoints[wp_name].pos[1]} (${FIX_WAYPOINTS.waypoints[wp_name].type})`
@@ -516,11 +518,13 @@ async function update_waypoint_preview_data() {
     }
     else if (wp_name.length == 4) {
         data = await get_airport_data(wp_name)
-        if (data) {
-            document.getElementById("waypoint_preview_data").textContent = `Found: ${data.location.latitude}, ${data.location.longitude} (${data.type})`
-        }
-        else {
-            document.getElementById("waypoint_preview_data").textContent = `Unknown airport: ${wp_name}`
+        if (data.icao == document.getElementById("new_waypoint_name").value){
+            if (data) {
+                document.getElementById("waypoint_preview_data").textContent = `Found: ${data.location.latitude}, ${data.location.longitude} (${data.type})`
+            }
+            else {
+                document.getElementById("waypoint_preview_data").textContent = `Unknown airport: ${wp_name}`
+            }
         }
     }
     else {
@@ -528,6 +532,42 @@ async function update_waypoint_preview_data() {
     }
 }
 
+function get_heading_between_points(point1, point2) {
+    const lat1 = point1[0] * Math.PI / 180;
+    const lon1 = point1[1] * Math.PI / 180;
+    const lat2 = point2[0] * Math.PI / 180;
+    const lon2 = point2[1] * Math.PI / 180;
+    const dLon = lon2 - lon1;
+    const x = Math.sin(dLon) * Math.cos(lat2);
+    const y = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+    const heading = Math.atan2(x, y) * 180 / Math.PI;
+    return (heading + 360) % 360; // Normalize to 0-360 degrees
+}
+
+function get_heading_to_next_waypoint(){
+    let lat = plane_location_data.PLANE_LATITUDE
+    let lon = plane_location_data.PLANE_LONGITUDE
+    
+}
+
+const next_waypoint = 0
+const next_waypoint_distance = 0
+const next_waypoint_heading = 0
+
+function track_flight_state(){
+    if (flightplan.waypoints.length == 0) {
+        return
+    }
+    let closest_wp = null
+    let closest_distance = 1000000000
+    flightplan.waypoints.forEach(wp => {
+        let distance = get_distance_between_points([wp.lat, wp.lon], [plane_location_data.PLANE_LATITUDE, plane_location_data.PLANE_LONGITUDE])
+        if (distance < closest_distance) {
+            closest_distance = distance
+            closest_wp = wp
+        }
+    });
+}
 
 window.map.on("moveend", function () {
     render_map();
