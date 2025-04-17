@@ -48,12 +48,23 @@
             <input id="show_runways" type="checkbox" checked="true" onclick="save_values()"><label for="show_runways">Show Runways</label><br>
             <input id="show_airspaces" type="checkbox" checked="true" onclick="save_values()"><label for="show_airspaces">Show Airspaces</label><br>
         </div>
+        <h1>Credits</h1>
+        <h2>Icons</h2>
+        <p>Plane by fajri fathul from Noun Project (CC BY 3.0)</p>
+        <p>Airport by HIMMATUL ULIYAH from Noun Project (CC BY 3.0)</p>
+        <p>Helipad by Meko from Noun Project (CC BY 3.0)</p>
+        <h2>Map</h2>
+        <p>Map by <a href="https://leafletjs.com/">Leaflet</a> using <a href="https://openstreetmap.org">OpenStreetMap</a></p>
+        <h2>Data</h2>
+        <p>Airport and Airspace data from <a href="https://openaip.net">OpenAIP</a></p>
+        <p>Fix waypoints from <a href="http://navaid.com/GPX/">navaid.com</a></p>
         <!-- <a id="flightplandatabase_light" href="https://flightplandatabase.com"><img src="https://static.flightplandatabase.com/images/data-banner/light.min.png" alt="Data from the Flight Plan Database"></a>
         <a id="flightplandatabase_dark" href="https://flightplandatabase.com"><img src="https://static.flightplandatabase.com/images/data-banner/dark.min.png" alt="Data from the Flight Plan Database"></a> -->
     </div>
     <div class="section section3">
         <h1>Flight plan</h1><button id="import_flightplan" onclick="import_flightplan()">Import Flightplan</button><button id="export_flightplan" onclick="export_flightplan()">Export Flightplan</button><button id="clear_flightplan" onclick="clear_flightplan()">Clear Flightplan</button>
         <h3>Route</h3>
+        <p id="additional_info"></p>
         <div id="flight_plan_waypoints">
         </div>
         <div id="add_waypoint_menu">

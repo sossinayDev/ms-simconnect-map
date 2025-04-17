@@ -290,7 +290,7 @@ function import_flightplan() {
                             let element = document.createElement("div")
                             element.classList.add("flight_plan_element")
                             element.id = `flightplan_${node.ident}`
-                            element.innerHTML = `<strong>${node.ident}</strong><br><span>${node.alt}ft 0kt</span>`
+                            element.innerHTML = `<strong>${node.ident}</strong><br><span>${node.alt}ft 0kt</span><button onclick="remove_flightplan_waypoint('flightplan_${node.ident}')">DEL</button>`
                             document.getElementById("flight_plan_waypoints").appendChild(element)
                             show_flightplan();
                         }
@@ -320,12 +320,29 @@ let path = null
 
 function show_flightplan() {
     if (document.getElementById("show_flightplan").checked) {
+        document.getElementById("additional_info").textContent=""
         if (!path) {
             path = L.polyline([], { color: 'green', weight: 5 }).addTo(map);
         }
-        path.setLatLngs(flightplan.waypoints.map(wp => [wp.lat, wp.lon]));
+        let render = true
+        flightplan.waypoints.forEach(wp => {
+            if (!wp.lat || !wp.lon) {
+                document.getElementById("additional_info").textContent="Not showing route: Unknown waypoints"
+                render = false
+            }
+        });
+        if (render){
+            path.setLatLngs(flightplan.waypoints.map(wp => [wp.lat, wp.lon]));
+        }
+        else {
+            if (path) {
+                path.remove();
+                path = null;
+            }
+        }
     }
     else {
+        document.getElementById("additional_info").textContent="Not showing route: Not enabled (see settings)"
         if (path) {
             path.remove();
             path = null;
@@ -402,14 +419,22 @@ async function add_waypoint_to_flightplan(wp_name, altitude, speed) {
         let element = document.createElement("div")
         element.classList.add("flight_plan_element")
         element.id = `flightplan_${wp_name}`
-        element.innerHTML = `<strong>${wp_name}</strong><br><span>${altitude}ft ${speed}kt</span>`
+        element.innerHTML = `<strong>${wp_name}</strong><br><span>${altitude}ft ${speed}kt</span><button onclick="remove_flightplan_waypoint('${element.id}')">DEL</button>`
         document.getElementById("flight_plan_waypoints").appendChild(element)
         document.getElementById('new_waypoint_name').focus()
         
     }
     else {
         if (wp_name.length == 4) {
-            let airport_data = await get_airport_data(wp_name)
+            let airport_data = null
+
+            try {
+                airport_data = await get_airport_data(wp_name)
+            }
+            catch {
+                console.log("error while getting ap info")
+            }
+
             if (airport_data) {
                 document.getElementById('new_waypoint_name').value = ""
                 document.getElementById('new_waypoint_altitude').value = ""
@@ -425,9 +450,40 @@ async function add_waypoint_to_flightplan(wp_name, altitude, speed) {
                 let element = document.createElement("div")
                 element.classList.add("flight_plan_element")
                 element.id = `flightplan_${wp_name}`
-                element.innerHTML = `<strong>${wp_name}</strong><br><span>${altitude}ft ${speed}kt</span>`
+                element.innerHTML = `<strong>${wp_name}</strong><br><span>${altitude}ft ${speed}kt</span><button onclick="remove_flightplan_waypoint('${element.id}')">DEL</button>`
                 document.getElementById("flight_plan_waypoints").appendChild(element)
                 document.getElementById('new_waypoint_name').focus()
+            }
+            else {
+                console.log("unknown airport")
+                if (document.getElementById('waypoint_preview_data').textContent=="Press enter again to add airport anyways") {
+                    console.log("force adding")
+                    document.getElementById('new_waypoint_name').focus()
+                    document.getElementById('new_waypoint_name').value = ""
+                    document.getElementById('new_waypoint_altitude').value = ""
+                    document.getElementById('new_waypoint_speed').value = ""
+
+                    flightplan.waypoints.push({
+                        id: wp_name,
+                        type: "APT",
+                        alt: altitude,
+                        speed: speed,
+                        lat: 0,
+                        lon: 0
+                    })
+                    let element = document.createElement("div")
+                    element.classList.add("flight_plan_element")
+                    element.id = `flightplan_${wp_name}`
+                    element.innerHTML = `<strong>${wp_name}</strong><br><span>${altitude}ft ${speed}kt</span><button onclick="remove_flightplan_waypoint('${element.id}')">DEL</button>`
+                    document.getElementById("flight_plan_waypoints").appendChild(element)
+
+                    
+                    document.getElementById('waypoint_preview_data').textContent=""
+                }
+                else {
+                    console.log("chaning text")
+                    document.getElementById('waypoint_preview_data').textContent="Press enter again to add airport anyways"
+                }
             }
         }
         else {
@@ -435,6 +491,17 @@ async function add_waypoint_to_flightplan(wp_name, altitude, speed) {
         }
     }
     show_flightplan()
+}
+
+function remove_flightplan_waypoint(id) {
+    document.getElementById(id).remove();
+    flightplan.waypoints.forEach(waypoint => {
+        if (waypoint.id == id.split("_")[1]) {
+            flightplan.waypoints.splice(flightplan.waypoints.indexOf(waypoint), 1);
+            show_flightplan();
+            return
+        }
+    });
 }
 
 async function update_waypoint_preview_data() {
@@ -453,7 +520,7 @@ async function update_waypoint_preview_data() {
             document.getElementById("waypoint_preview_data").textContent = `Found: ${data.location.latitude}, ${data.location.longitude} (${data.type})`
         }
         else {
-            document.getElementById("waypoint_preview_data").textContent = `Unknown waypoint: ${wp_name}`
+            document.getElementById("waypoint_preview_data").textContent = `Unknown airport: ${wp_name}`
         }
     }
     else {

@@ -117,6 +117,10 @@ blockquote {
     color: #00406a;
 }
 
+.flight_plan_element button {
+    padding: 0;
+}
+
 .dark-theme .flight_plan_element input {
     color: #77ccff
 }
