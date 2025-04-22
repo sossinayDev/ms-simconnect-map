@@ -25,8 +25,10 @@ function load_values() {
     if (settings) {
         Object.keys(settings).forEach(key => {
             let checkbox = document.getElementById(key);
-            if (checkbox) {
-                checkbox.checked = settings[key];
+            if (checkbox.type === "checkbox") {
+                if (checkbox) {
+                    checkbox.checked = settings[key];
+                }
             }
         });
     }
@@ -193,12 +195,12 @@ function load_elements() {
 
 function update_plane_marker() {
     if (is_simconnect_connected && plane_location_data) {
-        if (document.getElementById("show_plane").checked){
+        if (document.getElementById("show_plane").checked) {
             if (!plane_marker) {
                 initialize_plane_marker();
             }
 
-            plane_marker.getElement().style.display="block"
+            plane_marker.getElement().style.display = "block"
 
             const lat = plane_location_data.PLANE_LATITUDE;
             const lon = plane_location_data.PLANE_LONGITUDE;
@@ -231,14 +233,14 @@ function update_plane_marker() {
         }
         else {
             if (plane_marker) {
-                plane_marker.getElement().style.display="none"
+                plane_marker.getElement().style.display = "none"
             }
         }
     }
 }
 
 function export_flightplan() {
-    let flightplan_data = {nodes:[]}
+    let flightplan_data = { nodes: [] }
     flightplan.waypoints.forEach(waypoint => {
         type = "FIX"
         if (waypoint.type == "APT") {
@@ -258,7 +260,7 @@ function export_flightplan() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${flightplan.waypoints[0].id}-${flightplan.waypoints[flightplan.waypoints.length-1].id}.json`;
+    a.download = `${flightplan.waypoints[0].id}-${flightplan.waypoints[flightplan.waypoints.length - 1].id}.json`;
     a.click();
     URL.revokeObjectURL(url);
 }
@@ -320,19 +322,24 @@ let path = null
 
 function show_flightplan() {
     if (document.getElementById("show_flightplan").checked) {
-        document.getElementById("additional_info").textContent=""
+        document.getElementById("additional_info").textContent = ""
         if (!path) {
             path = L.polyline([], { color: 'green', weight: 5 }).addTo(map);
         }
         let render = true
         flightplan.waypoints.forEach(wp => {
             if (!wp.lat || !wp.lon) {
-                document.getElementById("additional_info").textContent="Not showing route: Unknown waypoints"
+                document.getElementById("additional_info").textContent = "Not showing route: Unknown waypoints"
                 render = false
             }
         });
-        if (render){
-            path.setLatLngs([plane_location_data.PLANE_LATITUDE, plane_location_data.PLANE_LONGITUDE]+flightplan.waypoints.map(wp => [wp.lat, wp.lon]));
+        if (render) {
+            if (is_simconnect_connected) {
+                path.setLatLngs([plane_location_data.PLANE_LATITUDE, plane_location_data.PLANE_LONGITUDE] + flightplan.waypoints.map(wp => [wp.lat, wp.lon]));
+            }
+            else {
+                path.setLatLngs(flightplan.waypoints.map(wp => [wp.lat, wp.lon]));
+            }
         }
         else {
             if (path) {
@@ -342,7 +349,7 @@ function show_flightplan() {
         }
     }
     else {
-        document.getElementById("additional_info").textContent="Not showing route: Not enabled (see settings)"
+        document.getElementById("additional_info").textContent = "Not showing route: Not enabled (see settings)"
         if (path) {
             path.remove();
             path = null;
@@ -379,7 +386,7 @@ function update_marker_opacity() {
             opacity = (((map.getZoom() / 19 - 0.2) * 10) ** 2) / 10
         }
         opacity *= 0.7
-    }    
+    }
     markers.forEach(marker => {
         marker.setOpacity(opacity);
     });
@@ -423,7 +430,7 @@ async function add_waypoint_to_flightplan(wp_name, altitude, speed) {
         element.innerHTML = `<strong>${wp_name}</strong><br><span>${altitude}ft ${speed}kt</span><button onclick="remove_flightplan_waypoint('${element.id}')">DEL</button>`
         document.getElementById("flight_plan_waypoints").appendChild(element)
         document.getElementById('new_waypoint_name').focus()
-        
+
     }
     else {
         if (wp_name.length == 4) {
@@ -457,7 +464,7 @@ async function add_waypoint_to_flightplan(wp_name, altitude, speed) {
             }
             else {
                 console.log("unknown airport")
-                if (document.getElementById('waypoint_preview_data').textContent=="Press enter again to add airport anyways") {
+                if (document.getElementById('waypoint_preview_data').textContent == "Press enter again to add airport anyways") {
                     console.log("force adding")
                     document.getElementById('new_waypoint_name').focus()
                     document.getElementById('new_waypoint_name').value = ""
@@ -478,12 +485,12 @@ async function add_waypoint_to_flightplan(wp_name, altitude, speed) {
                     element.innerHTML = `<strong>${wp_name}</strong><br><span>${altitude}ft ${speed}kt</span><button onclick="remove_flightplan_waypoint('${element.id}')">DEL</button>`
                     document.getElementById("flight_plan_waypoints").appendChild(element)
 
-                    
-                    document.getElementById('waypoint_preview_data').textContent=""
+
+                    document.getElementById('waypoint_preview_data').textContent = ""
                 }
                 else {
                     console.log("chaning text")
-                    document.getElementById('waypoint_preview_data').textContent="Press enter again to add airport anyways"
+                    document.getElementById('waypoint_preview_data').textContent = "Press enter again to add airport anyways"
                 }
             }
         }
@@ -508,7 +515,7 @@ function remove_flightplan_waypoint(id) {
 async function update_waypoint_preview_data() {
     wp_name = document.getElementById("new_waypoint_name").value
     console.log(wp_name.length)
-    if (wp_name.length>4){
+    if (wp_name.length > 4) {
         if (Object.keys(FIX_WAYPOINTS.waypoints).includes(wp_name)) {
             document.getElementById("waypoint_preview_data").textContent = `Found: ${FIX_WAYPOINTS.waypoints[wp_name].pos[0]}, ${FIX_WAYPOINTS.waypoints[wp_name].pos[1]} (${FIX_WAYPOINTS.waypoints[wp_name].type})`
         }
@@ -518,7 +525,7 @@ async function update_waypoint_preview_data() {
     }
     else if (wp_name.length == 4) {
         data = await get_airport_data(wp_name)
-        if (data.icao == document.getElementById("new_waypoint_name").value){
+        if (data.icao == document.getElementById("new_waypoint_name").value) {
             if (data) {
                 document.getElementById("waypoint_preview_data").textContent = `Found: ${data.location.latitude}, ${data.location.longitude} (${data.type})`
             }
@@ -544,17 +551,17 @@ function get_heading_between_points(point1, point2) {
     return (heading + 360) % 360; // Normalize to 0-360 degrees
 }
 
-function get_heading_to_next_waypoint(){
+function get_heading_to_next_waypoint() {
     let lat = plane_location_data.PLANE_LATITUDE
     let lon = plane_location_data.PLANE_LONGITUDE
-    
+
 }
 
 const next_waypoint = 0
 const next_waypoint_distance = 0
 const next_waypoint_heading = 0
 
-function track_flight_state(){
+function track_flight_state() {
     if (flightplan.waypoints.length == 0) {
         return
     }
@@ -577,6 +584,11 @@ setInterval(render_map, 2000)
 
 window.onload = function () {
     load_values();
+    const storedApiKey = localStorage.getItem("openaip_api_key");
+    if (storedApiKey) {
+        document.getElementById("openaip_api_key").value = storedApiKey;
+        API_KEY = storedApiKey;
+    }
     render_map();
     if (document.getElementById("simconnect_autostart").checked) {
         try_simconnect_connection();

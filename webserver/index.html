@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,6 +16,7 @@
     <script src="static/databases/fix_points.js" defer></script>
 
 </head>
+
 <body>
     <div class="section section1">
         <div id="map_container" style="width: 100%; height: 100%;">
@@ -25,28 +27,44 @@
         <h1>Settings</h1>
         <div id="simconnect_settings">
             <h2>SimConnect Settings</h2>
-            <p>SimConnect is a Microsoft Flight Simulator API that allows external applications to communicate with the simulator.</p>
-            <p>Enabling this will allow SimConnectMap to access your planes location, heading, speed and other information to enhance your experience.</p>
-            <button id="enable_simconnect" onclick="try_simconnect_connection()">Connect to SimConnectMapClient</button><br>
-            <blockquote>Note: To use SimConnect, you need to have Microsoft Flight Simulator installed and running, as well as the local <a href="download.html">SimConnectMapClient.</a></blockquote>
-            <input id="simconnect_autostart" type="checkbox" checked="false" onclick="save_values()"><label for="simconnect_autostart">Start SimConnect on startup</label><br>
-            <input id="simconnect_track_plane" type="checkbox" checked="true" onclick="save_values()"><label for="simconnect_track_plane">Automatically snap map to plane</label><br>
+            <p>SimConnect is a Microsoft Flight Simulator API that allows external applications to communicate with the
+                simulator.</p>
+            <p>Enabling this will allow SimConnectMap to access your planes location, heading, speed and other
+                information to enhance your experience.</p>
+            <button id="enable_simconnect" onclick="try_simconnect_connection()">Connect to
+                SimConnectMapClient</button><br>
+            <blockquote>Note: To use SimConnect, you need to have Microsoft Flight Simulator installed and running, as
+                well as the local <a href="download.html">SimConnectMapClient.</a></blockquote>
+            <input id="simconnect_autostart" type="checkbox" checked="false" onclick="save_values()"><label
+                for="simconnect_autostart">Start SimConnect on startup</label><br>
+            <input id="simconnect_track_plane" type="checkbox" checked="true" onclick="save_values()"><label
+                for="simconnect_track_plane">Automatically snap map to plane</label><br>
         </div>
         <div id="visual_settings">
             <h2>Visual Settings</h2>
             <p>These settings will change the way the webpage looks.</p>
-            <input id="dark_mode_map" type="checkbox" checked="true" onclick="save_values()"><label for="dark_mode_map">Dark mode map</label><br>
+            <input id="dark_mode_map" type="checkbox" checked="true" onclick="save_values()"><label
+                for="dark_mode_map">Dark mode map</label><br>
             <input id="dark_mode" type="checkbox" onclick="save_values()"><label for="dark_mode">Dark Mode</label><br>
         </div>
         <div id="map_settings">
             <h2>Map Settings</h2>
             <p>These settings will change the way the map looks.</p>
-            <input id="show_plane" type="checkbox" checked="true" onclick="save_values()"><label for="show_plane">Show Plane</label><br>
-            <input id="show_flightplan" type="checkbox" checked="true" onclick="save_values();show_flightplan()"><label for="show_plane">Show Flightplan</label><br>
-            <input id="show_weather" type="checkbox" checked="true" onclick="save_values()"><label for="show_weather">Show Weather</label><br>
-            <input id="show_airports" type="checkbox" checked="true" onclick="save_values()"><label for="show_airports">Show Airports</label><br>
-            <input id="show_runways" type="checkbox" checked="true" onclick="save_values()"><label for="show_runways">Show Runways</label><br>
-            <input id="show_airspaces" type="checkbox" checked="true" onclick="save_values()"><label for="show_airspaces">Show Airspaces</label><br>
+            <!-- <input id="show_plane" type="checkbox" checked="true" onclick="save_values()"><label for="show_plane">Show Plane</label><br> -->
+            <input id="show_flightplan" type="checkbox" checked="true" onclick="save_values();show_flightplan()"><label
+                for="show_plane">Show Flightplan</label><br>
+            <!-- <input id="show_weather" type="checkbox" checked="true" onclick="save_values()"><label for="show_weather">Show Weather</label><br> -->
+            <input id="show_airports" type="checkbox" checked="true" onclick="save_values()"><label
+                for="show_airports">Show Airports</label><br>
+            <!-- <input id="show_runways" type="checkbox" checked="true" onclick="save_values()"><label for="show_runways">Show Runways</label><br> -->
+            <input id="show_airspaces" type="checkbox" checked="true" onclick="save_values()"><label
+                for="show_airspaces">Show Airspaces</label><br>
+        </div>
+        <div id="api_settings">
+            <h2>API Settings</h2>
+            <p>Change your API keys here</p>
+            <input id="openaip_api_key" oninput="update_openaip_key()"><label for="use_local_api">OpenAIP
+                key</label><br>
         </div>
         <h1>Credits</h1>
         <h2>Icons</h2>
@@ -54,7 +72,8 @@
         <p>Airport by HIMMATUL ULIYAH from Noun Project (CC BY 3.0)</p>
         <p>Helipad by Meko from Noun Project (CC BY 3.0)</p>
         <h2>Map</h2>
-        <p>Map by <a href="https://leafletjs.com/">Leaflet</a> using <a href="https://openstreetmap.org">OpenStreetMap</a></p>
+        <p>Map by <a href="https://leafletjs.com/">Leaflet</a> using <a
+                href="https://openstreetmap.org">OpenStreetMap</a></p>
         <h2>Data</h2>
         <p>Airport and Airspace data from <a href="https://openaip.net">OpenAIP</a></p>
         <p>Fix waypoints from <a href="http://navaid.com/GPX/">navaid.com</a></p>
@@ -62,16 +81,19 @@
         <a id="flightplandatabase_dark" href="https://flightplandatabase.com"><img src="https://static.flightplandatabase.com/images/data-banner/dark.min.png" alt="Data from the Flight Plan Database"></a> -->
     </div>
     <div class="section section3">
-        <h1>Flight plan</h1><button id="import_flightplan" onclick="import_flightplan()">Import Flightplan</button><button id="export_flightplan" onclick="export_flightplan()">Export Flightplan</button><button id="clear_flightplan" onclick="clear_flightplan()">Clear Flightplan</button>
+        <h1>Flight plan</h1><button id="import_flightplan" onclick="import_flightplan()">Import
+            Flightplan</button><button id="export_flightplan" onclick="export_flightplan()">Export
+            Flightplan</button><button id="clear_flightplan" onclick="clear_flightplan()">Clear Flightplan</button>
         <h3>Route</h3>
         <p id="additional_info"></p>
         <div id="flight_plan_waypoints">
         </div>
         <div id="add_waypoint_menu">
             <div class="flight_plan_element">
-                <input placeholder="CDE" id="new_waypoint_name" oninput="document.getElementById('new_waypoint_name').value = document.getElementById('new_waypoint_name').value.toUpperCase(); update_waypoint_preview_data()"/>
-                <input placeholder="ALT" type="number" id="new_waypoint_altitude"/>
-                <input placeholder="SPD" type="number" id="new_waypoint_speed"/>
+                <input placeholder="CDE" id="new_waypoint_name"
+                    oninput="document.getElementById('new_waypoint_name').value = document.getElementById('new_waypoint_name').value.toUpperCase(); update_waypoint_preview_data()" />
+                <input placeholder="ALT" type="number" id="new_waypoint_altitude" />
+                <input placeholder="SPD" type="number" id="new_waypoint_speed" />
             </div>
             <p id="waypoint_preview_data"></p>
         </div>
@@ -89,4 +111,5 @@
         }).addTo(map);
     </script>
 </body>
+
 </html>

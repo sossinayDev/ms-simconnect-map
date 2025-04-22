@@ -1,4 +1,9 @@
-const API_KEY = "b450547cd6e6c43c0c0b131a6b1c832e"
+let API_KEY = ""
+function update_openaip_key() {
+    API_KEY = document.getElementById("openaip_api_key").value
+    localStorage.setItem("openaip_api_key", API_KEY)
+}
+
 const API_BASE_URL = "https://api.core.openaip.net/api/{PTH}?pos={POS}&dist={RNG}"
 
 const ZONE_RANGE = 100000
