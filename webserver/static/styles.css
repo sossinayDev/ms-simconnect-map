@@ -131,6 +131,11 @@ blockquote {
     margin-right: 1vw;
 }
 
+.dark-theme #openaip_api_key {
+    background-color: #00000020;
+    color: white;
+}
+
 .dark-theme .flight_plan_element input {
     color: #77ccff
 }
