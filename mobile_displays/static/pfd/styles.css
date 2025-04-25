@@ -1,0 +1,21 @@
+body {
+    background-color: black;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;;
+}
+
+#pfd_container {
+    background-color: #03001f;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#navball {
+    background-color: #00a2ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}

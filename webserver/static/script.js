@@ -8,6 +8,7 @@ let flightplan = {
     waypoints: []
 }
 
+
 function save_values() {
     const settings = {};
     document.querySelectorAll("input").forEach(checkbox => {
@@ -34,6 +35,7 @@ function load_values() {
     }
 
     update_theme();
+    return settings
 }
 
 function update_theme() {
@@ -57,31 +59,61 @@ function update_theme() {
     }
 }
 
+let a = null
 async function try_simconnect_connection() {
     if (is_simconnect_connected) {
         console.log("Disconnecting from SimConnect...");
         is_simconnect_connected = false;
         document.getElementById("enable_simconnect").innerText = "Connect to SimConnectMapClient";
+        clearTimeout(a)
     }
     else {
-        console.log("Trying to connect to SimConnect...");
-        document.getElementById("enable_simconnect").disabled = true;
-        document.getElementById("enable_simconnect").innerText = "Connecting...";
-        setTimeout(() => { document.getElementById("enable_simconnect").innerText = "Disconnect"; }, 2000);
+        clearTimeout(a)
+        if (load_values().simconnect_remote) {
+            console.log("Trying to connect to SimConnect...");
+            document.getElementById("enable_simconnect").disabled = true;
+            document.getElementById("enable_simconnect").innerText = "Connecting...";
 
-        let client_running = await check_for_client()
-        if (client_running) {
-            console.log("SimConnect is running.");
-            is_simconnect_connected = true;
-            document.getElementById("enable_simconnect").disabled = false;
-            document.getElementById("enable_simconnect").innerText = "Connected";
+            let client_running = await check_for_remote_client()
+            if (client_running) {
+                console.log("SimConnect is running.");
+                is_simconnect_connected = true;
+                document.getElementById("enable_simconnect").disabled = false;
+                document.getElementById("enable_simconnect").innerText = "Connected";
+                clearTimeout(a)
+                a=setTimeout(() => { document.getElementById("enable_simconnect").innerText = "Disconnect"; }, 2000);
+            }
+            else {
+                console.log("SimConnect is not running.");
+                is_simconnect_connected = false;
+                document.getElementById("enable_simconnect").disabled = false;
+                document.getElementById("enable_simconnect").innerText = "Error while connecting";
+                clearTimeout(a)
+                a=setTimeout(() => { document.getElementById("enable_simconnect").innerText = "Connect to SimConnectMapClient"; }, 2000);
+            }
         }
         else {
-            console.log("SimConnect is not running.");
-            is_simconnect_connected = false;
-            document.getElementById("enable_simconnect").disabled = false;
-            document.getElementById("enable_simconnect").innerText = "Error while connecting";
-            setTimeout(() => { document.getElementById("enable_simconnect").innerText = "Connect to SimConnectMapClient"; }, 2000);
+            console.log("Trying to connect to SimConnect...");
+            document.getElementById("enable_simconnect").disabled = true;
+            document.getElementById("enable_simconnect").innerText = "Connecting...";
+
+            let client_running = await check_for_client()
+            if (client_running) {
+                console.log("SimConnect is running.");
+                is_simconnect_connected = true;
+                document.getElementById("enable_simconnect").disabled = false;
+                document.getElementById("enable_simconnect").innerText = "Connected";
+                clearTimeout(a)
+                a = setTimeout(() => { document.getElementById("enable_simconnect").innerText = "Disconnect"; }, 2000);
+            }
+            else {
+                console.log("SimConnect is not running.");
+                is_simconnect_connected = false;
+                document.getElementById("enable_simconnect").disabled = false;
+                document.getElementById("enable_simconnect").innerText = "Error while connecting";
+                clearTimeout(a)
+                a = setTimeout(() => { document.getElementById("enable_simconnect").innerText = "Connect to SimConnectMapClient"; }, 2000);
+            }
         }
     }
 }
@@ -327,6 +359,10 @@ function show_flightplan() {
             path = L.polyline([], { color: 'green', weight: 5 }).addTo(map);
         }
         let render = true
+        if (flightplan.waypoints.length < 2) {
+            render = false
+            document.getElementById("additional_info").textContent = "Not showing route: Not enough waypoints"
+        }
         flightplan.waypoints.forEach(wp => {
             if (!wp.lat || !wp.lon) {
                 document.getElementById("additional_info").textContent = "Not showing route: Unknown waypoints"

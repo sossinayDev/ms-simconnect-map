@@ -154,3 +154,21 @@ blockquote {
 .dark-theme #flightplandatabase_dark {
     display: block;
 }
+
+#simple_section {
+    padding-left: 2vw;
+    display: block !important;
+}
+
+strong {
+    color: #00406a;
+}
+
+.dark-theme strong{
+    color: #77ccff
+}
+
+#download_text{
+    user-select: none;
+    cursor: pointer;
+}

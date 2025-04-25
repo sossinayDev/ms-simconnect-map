@@ -27,18 +27,13 @@
         <h1>Settings</h1>
         <div id="simconnect_settings">
             <h2>SimConnect Settings</h2>
-            <p>SimConnect is a Microsoft Flight Simulator API that allows external applications to communicate with the
-                simulator.</p>
-            <p>Enabling this will allow SimConnectMap to access your planes location, heading, speed and other
-                information to enhance your experience.</p>
-            <button id="enable_simconnect" onclick="try_simconnect_connection()">Connect to
-                SimConnectMapClient</button><br>
-            <blockquote>Note: To use SimConnect, you need to have Microsoft Flight Simulator installed and running, as
-                well as the local <a href="download.html">SimConnectMapClient.</a></blockquote>
-            <input id="simconnect_autostart" type="checkbox" checked="false" onclick="save_values()"><label
-                for="simconnect_autostart">Start SimConnect on startup</label><br>
-            <input id="simconnect_track_plane" type="checkbox" checked="true" onclick="save_values()"><label
-                for="simconnect_track_plane">Automatically snap map to plane</label><br>
+            <p>SimConnect is a Microsoft Flight Simulator API that allows external applications to communicate with the simulator.</p>
+            <p>Enabling this will allow SimConnectMap to access your planes location, heading, speed and other information to enhance your experience.</p>
+            <button id="enable_simconnect" onclick="try_simconnect_connection()">Connect to SimConnectMapClient</button><br>
+            <blockquote>Note: To use SimConnect, you need to have Microsoft Flight Simulator installed and running, as well as the local <a href="download.html">SimConnectMapClient.</a></blockquote>
+            <input id="simconnect_autostart" type="checkbox" checked="false" onclick="save_values()"><label for="simconnect_autostart">Start SimConnect on startup</label><br>
+            <input id="simconnect_track_plane" type="checkbox" checked="true" onclick="save_values()"><label for="simconnect_track_plane">Automatically snap map to plane</label><br>
+            <input id="simconnect_remote" type="checkbox" checked="false" onclick="save_values()"><label for="simconnect_remote">Connect to MSFS remotely <a href="simconnect.html">[How to?]</a></label><br>
         </div>
         <div id="visual_settings">
             <h2>Visual Settings</h2>
@@ -50,7 +45,7 @@
         <div id="map_settings">
             <h2>Map Settings</h2>
             <p>These settings will change the way the map looks.</p>
-            <!-- <input id="show_plane" type="checkbox" checked="true" onclick="save_values()"><label for="show_plane">Show Plane</label><br> -->
+            <input id="show_plane" type="checkbox" checked="true" onclick="save_values()"><label for="show_plane">Show Plane</label><br>
             <input id="show_flightplan" type="checkbox" checked="true" onclick="save_values();show_flightplan()"><label
                 for="show_plane">Show Flightplan</label><br>
             <!-- <input id="show_weather" type="checkbox" checked="true" onclick="save_values()"><label for="show_weather">Show Weather</label><br> -->
@@ -108,7 +103,7 @@
         // Add OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
-            attribution: '© OpenStreetMap contributors'
+            attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a> contributors | <a href="https://openaip.net">openAIP</a> | <a href="https://www.navaid.com">navaid.com</a>'
         }).addTo(map);
     </script>
 </body>
