@@ -666,6 +666,30 @@ window.onload = function () {
             fullscreenBtn.src = "static/img/exit_fullscreen.svg";
         }
     });
+
+    if ('wakeLock' in navigator) {
+        let wakeLock = null;
+
+        async function requestWakeLock() {
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+                wakeLock.addEventListener('release', () => {
+                    console.log('Wake Lock was released');
+                });
+                console.log('Wake Lock is active');
+            } catch (err) {
+                console.error(`${err.name}, ${err.message}`);
+            }
+        }
+
+        requestWakeLock();
+
+        document.addEventListener('visibilitychange', () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                requestWakeLock();
+            }
+        });
+    }
 }
 
 document.getElementById('new_waypoint_name').addEventListener('keypress', function (event) {
