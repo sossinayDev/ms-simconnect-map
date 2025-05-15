@@ -81,7 +81,7 @@ async function try_simconnect_connection() {
                 document.getElementById("enable_simconnect").disabled = false;
                 document.getElementById("enable_simconnect").innerText = "Connected";
                 clearTimeout(a)
-                a=setTimeout(() => { document.getElementById("enable_simconnect").innerText = "Disconnect"; }, 2000);
+                a = setTimeout(() => { document.getElementById("enable_simconnect").innerText = "Disconnect"; }, 2000);
             }
             else {
                 console.log("SimConnect is not running.");
@@ -89,7 +89,7 @@ async function try_simconnect_connection() {
                 document.getElementById("enable_simconnect").disabled = false;
                 document.getElementById("enable_simconnect").innerText = "Error while connecting";
                 clearTimeout(a)
-                a=setTimeout(() => { document.getElementById("enable_simconnect").innerText = "Connect to SimConnectMapClient"; }, 2000);
+                a = setTimeout(() => { document.getElementById("enable_simconnect").innerText = "Connect to SimConnectMapClient"; }, 2000);
             }
         }
         else {
@@ -120,11 +120,21 @@ async function try_simconnect_connection() {
 
 async function check_simconnect_status() {
     if (is_simconnect_connected) {
-        if (!await check_for_client()) {
-            console.log("Connection to SimConnect lost.");
-            is_simconnect_connected = false;
-            document.getElementById("enable_simconnect").innerText = "Connect to SimConnectMapClient";
+        if (load_values().simconnect_remote) {
+            // if (!await check_for_remote_client()) {
+            //     console.log("Connection to SimConnect lost.");
+            //     is_simconnect_connected = false;
+            //     document.getElementById("enable_simconnect").innerText = "Connect to SimConnectMapClient";
+            // }
         }
+        else {
+            if (!await check_for_client()) {
+                console.log("Connection to SimConnect lost.");
+                is_simconnect_connected = false;
+                document.getElementById("enable_simconnect").innerText = "Connect to SimConnectMapClient";
+            }
+        }
+
     }
 }
 
@@ -132,10 +142,14 @@ setInterval(check_simconnect_status, 500)
 
 async function get_plane_data() {
     if (is_simconnect_connected) {
-        plane_location_data = await get_location();
+        let temp = await get_location();
+        if (temp) {
+            plane_location_data = temp
+        }
     }
+    setTimeout(get_plane_data, 1000)
 }
-setInterval(get_plane_data, 1000)
+setTimeout(get_plane_data, 1000)
 
 let plane_marker = null
 function initialize_plane_marker() {
@@ -174,7 +188,9 @@ function remove_all_markers() {
 }
 
 function capitalize(str) {
-    return str[0].toUpperCase() + str.substr(1).toLowerCase()
+    if (str) {
+        return str[0].toUpperCase() + str.substr(1).toLowerCase()
+    }
 }
 
 function namelize(str) {
@@ -225,7 +241,7 @@ function load_elements() {
     });
 }
 
-function update_plane_marker() {
+async function update_plane_marker() {
     if (is_simconnect_connected && plane_location_data) {
         if (document.getElementById("show_plane").checked) {
             if (!plane_marker) {
@@ -371,7 +387,8 @@ function show_flightplan() {
         });
         if (render) {
             if (is_simconnect_connected) {
-                path.setLatLngs([plane_location_data.PLANE_LATITUDE, plane_location_data.PLANE_LONGITUDE] + flightplan.waypoints.map(wp => [wp.lat, wp.lon]));
+                // path.setLatLngs([plane_location_data.PLANE_LATITUDE, plane_location_data.PLANE_LONGITUDE] + flightplan.waypoints.map(wp => [wp.lat, wp.lon]));
+                path.setLatLngs(flightplan.waypoints.map(wp => [wp.lat, wp.lon]));
             }
             else {
                 path.setLatLngs(flightplan.waypoints.map(wp => [wp.lat, wp.lon]));
@@ -409,9 +426,8 @@ function load_waypoint_data() {
     });
 }
 
-function render_moving() {
+async function render_moving() {
     update_plane_marker();
-    show_flightplan();
 }
 setInterval(render_moving, 100)
 
@@ -443,6 +459,7 @@ function render_map() {
     load_elements();
     update_marker_opacity();
     load_waypoint_data();
+    show_flightplan();
 }
 
 
@@ -612,11 +629,7 @@ function track_flight_state() {
     });
 }
 
-window.map.on("moveend", function () {
-    render_map();
-});
-
-setInterval(render_map, 2000)
+setInterval(render_map, 5000)
 
 window.onload = function () {
     load_values();
@@ -629,6 +642,30 @@ window.onload = function () {
     if (document.getElementById("simconnect_autostart").checked) {
         try_simconnect_connection();
     }
+
+    const fullscreenBtn = document.createElement("img");
+    fullscreenBtn.src = "static/img/fullscreen.svg";
+    fullscreenBtn.className = "leaflet-control-fullscreen";
+    fullscreenBtn.style.marginTop = "8px";
+    fullscreenBtn.style.cursor = "pointer";
+    fullscreenBtn.onclick = function () {
+        if (!document.fullscreenElement) {
+            fullscreen_map();
+            fullscreenBtn.src = "static/img/fullscreen_exit.svg";
+        } else {
+            exit_map_fullscreen();
+            fullscreenBtn.src = "static/img/fullscreen.svg";
+        }
+    };
+    document.querySelector(".leaflet-control-zoom").appendChild(fullscreenBtn);
+
+    document.addEventListener("fullscreenchange", () => {
+        if (!document.fullscreenElement) {
+            fullscreenBtn.src = "static/img/fullscreen.svg";
+        } else {
+            fullscreenBtn.src = "static/img/exit_fullscreen.svg";
+        }
+    });
 }
 
 document.getElementById('new_waypoint_name').addEventListener('keypress', function (event) {
@@ -649,3 +686,53 @@ document.getElementById('new_waypoint_speed').addEventListener('keypress', funct
         add_waypoint_to_flightplan(document.getElementById('new_waypoint_name').value, document.getElementById('new_waypoint_altitude').value, document.getElementById('new_waypoint_speed').value)
     }
 });
+
+function fullscreen_map() {
+    document.querySelectorAll('.section2, .section3, .section4').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.section1').forEach(el => el.style.display = '');
+    if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen();
+    }
+    document.body.style.display = "flex";
+    document.body.style.flexDirection = "column";
+    document.body.style.height = "100vh";
+    document.body.style.width = "100vw";
+    document.body.style.margin = "0";
+    document.body.style.padding = "0";
+    document.querySelector('.section1').style.display = "block";
+    document.querySelector('.section1').style.width = "100%";
+    document.querySelector('.section1').style.height = "100%";
+    document.querySelector('.section1').style.padding = "0px";
+
+    // Invalidate map size so Leaflet redraws tiles
+    if (window.map && typeof window.map.invalidateSize === "function") {
+        setTimeout(() => {
+            window.map.invalidateSize();
+        }, 300);
+    }
+}
+
+function exit_map_fullscreen() {
+    document.querySelectorAll('.section2, .section3, .section4').forEach(el => el.style.display = '');
+    document.querySelectorAll('.section1').forEach(el => el.style.display = '');
+    if (document.exitFullscreen) {
+        document.exitFullscreen();
+    }
+    document.body.style.display = "";
+    document.body.style.flexDirection = "";
+    document.body.style.height = "";
+    document.body.style.width = "";
+    document.body.style.margin = "";
+    document.body.style.padding = "";
+    document.querySelector('.section1').style.display = "";
+    document.querySelector('.section1').style.width = "";
+    document.querySelector('.section1').style.height = "";
+    document.querySelector('.section1').style.padding = "2%";
+
+    // Invalidate map size again
+    if (window.map && typeof window.map.invalidateSize === "function") {
+        setTimeout(() => {
+            window.map.invalidateSize();
+        }, 300);
+    }
+}

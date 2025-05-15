@@ -41,7 +41,7 @@ async function start_remote_connection() {
     await Promise.any(requests);
 }
 
-function get_location() {
+async function get_location() {
     if (remote_connection_mode) {
         return fetch(REMOTE_SIM_URL+"location", {
             method: 'GET',
@@ -125,11 +125,14 @@ async function check_for_remote_client() {
     remote_connection_mode = true;
     try {
         await start_remote_connection()
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Delay for 2 seconds
         if (!REMOTE_SIM_CONNECTED) {
             console.log("Remote client is not running.");
             return false;
         }
+        remote_connection_mode = true;
         const isRunning = await send_runcheck();
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Delay for 2 seconds
         if (isRunning) {
             console.log("Remote client is running.");
         } else {
@@ -138,6 +141,6 @@ async function check_for_remote_client() {
         return isRunning;
     } catch (error) {
         console.log("Remote client is not running.");
-        return false;
+        return false
     }
 }
